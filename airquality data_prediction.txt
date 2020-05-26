@@ -1,0 +1,87 @@
+#what is the mean of temp when month is equal to 6
+data("airquality")
+air=airquality
+colSums(is.na(air))
+table(air$Ozone)
+#Ozone Solar.R    Wind    Temp   Month     Day
+str(air)
+summary(air)
+meansub=subset(air[air$Month==6,])
+mean(meansub$Temp,na.rm = TRUE)
+
+#what is Ozone value when wind is 10.25 when we have missing value using different methods
+colSums(is.na(air))
+summary(air)
+library(ggplot2)
+ggplot(air,aes(x=Ozone,y=Month))+geom_boxplot(aes(fill=factor(Month)))
+
+#1.Model prediction by fill missing with categorial values
+missoz=function(oz,mon){
+  for(i in 1:length(oz)){
+    if (is.na(oz[i])){
+      if(mon[i]==5){
+        oz[i]=18}
+      else if(mon[i]==6){
+        oz[i]=21}
+      else if(mon[i]==7){
+        oz[i]=69}
+      else if(mon[i]==8){
+        oz[i]=59}
+      else{oz[i]=24}
+    }
+  }
+  return(oz)
+}
+missozone=missoz(air$Ozone,air$Month)
+plot(missozone~Wind,air)
+ozi_model=lm(missozone~Wind,air)
+summary(ozi_model)
+82.69-4.313*10.25
+newcowind=data.frame(Wind=c(10.25))
+predict(ozi_model,newcowind)
+
+#2.Model prediction by fill missing with mean values of column
+for(i in 1:6){
+  air[is.na(air[,i]),i]=mean(air[,i],na.rm = TRUE)}
+meanair=round(air)
+plot(Ozone~Wind,meanair)
+meanoz=mean(air$Ozone,na.rm = TRUE)
+meanoz_model=lm(Ozone~Wind,meanair)
+summary(meanoz_model)
+84.70-4.25*10.25
+meanoznewcol=data.frame(Wind=c(10.25))
+predict(meanoz_model,meanoznewcol)
+
+#3.Model prediction by removing NA
+air=na.omit(air)
+remna_model=lm(Ozone~Wind,air)
+summary(remna_model)
+99.0413-5.7288*10.25
+remnacol=data.frame(Wind=c(10.25))
+predict(remna_model,remnacol)
+
+
+#######simple lenior
+air_my=airquality
+names(air_my)
+#"Ozone"   "Solar.R" "Wind"    "Temp"    "Month"   "Day"
+plot(Ozone~Solar.R,air_my)
+#calculate mean by removing NA
+meanair=mean(air_my$Ozone,na.rm = TRUE)
+abline(h=meanair)
+#use lm to best fit line through the data
+modle=lm(Ozone~Solar.R,air_my)
+abline(modle,col="Red")
+plot(modle)
+summary(modle)
+
+######Multiple lenior
+
+#plots
+pairs(air_my,lower.panel = NULL)
+coplot(Ozone~Solar.R|Wind,panel=panel.smooth,air_my)
+##when solar.R=100 and Wind=15
+multimodel=lm(Ozone~Solar.R+Wind,air_my)
+summary(multimodel)
+predict(multimodel,data.frame(Solar.R=c(100),
+                              Wind=c(15)))
